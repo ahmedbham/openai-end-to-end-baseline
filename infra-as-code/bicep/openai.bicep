@@ -50,7 +50,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-06-01-preview'
     name: 'S0'
   }
 
-  @description('Fairly aggressive filter that attempts to block prompts and completions that are likely unprofessional. Tune to your specific requirements.')
+
   resource blockingFilter 'raiPolicies' = {
     name: 'blocking-filter'
     properties: {
@@ -139,7 +139,7 @@ resource openAiAccount 'Microsoft.CognitiveServices/accounts@2024-06-01-preview'
     }
   }
 
-  @description('Add a gpt-3.5 turbo deployment.')
+
   resource gpt35 'deployments' = {
     name: 'gpt35'
     sku: {

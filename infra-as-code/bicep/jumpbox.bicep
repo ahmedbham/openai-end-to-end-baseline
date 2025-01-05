@@ -21,7 +21,7 @@ param logWorkspaceName string
 param jumpBoxAdminName string = 'vmadmin'
 
 @description('Specifies the password of the administrator account on the Windows jump box.\n\nComplexity requirements: 3 out of 4 conditions below need to be fulfilled:\n- Has lower characters\n- Has upper characters\n- Has a digit\n- Has a special character\n\nDisallowed values: "abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!"')
-@secure()
+// @secure()
 @minLength(8)
 @maxLength(123)
 param jumpBoxAdminPassword string
@@ -40,8 +40,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' existing 
   resource jumpBoxSubnet 'subnets' existing = {
     name: 'snet-jumpbox'
   }
-
-  resource bastionSubnet 'subnets' existing = {
+  resource AzureBastionSubnet 'subnets' existing = {
     name: 'AzureBastionSubnet'
   }
 }
@@ -101,7 +100,7 @@ resource bastion 'Microsoft.Network/bastionHosts@2024-01-01' = {
             id: bastionPublicIp.id
           }
           subnet: {
-            id: virtualNetwork::bastionSubnet.id
+            id: virtualNetwork::AzureBastionSubnet.id
           }
         }
       }
@@ -293,47 +292,51 @@ resource jumpBoxVirtualMachine 'Microsoft.Compute/virtualMachines@2023-07-01' = 
       }
     }
   }
+}
 
-  @description('Support remote admin password changes.')
-  resource vmAccessExtension 'extensions' = {
-    name: 'enablevmAccess'
-    location: location
-    properties: {
-      autoUpgradeMinorVersion: true
-      enableAutomaticUpgrade: false
-      publisher: 'Microsoft.Compute'
-      type: 'VMAccessAgent'
-      typeHandlerVersion: '2.0'
-      settings: {}
-    }
+// ---- Extensions ----
+
+@description('Support remote admin password changes.')
+resource vmAccessExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
+  name: 'enablevmAccess'
+  parent: jumpBoxVirtualMachine
+  location: location
+  properties: {
+    autoUpgradeMinorVersion: true
+    enableAutomaticUpgrade: false
+    publisher: 'Microsoft.Compute'
+    type: 'VMAccessAgent'
+    typeHandlerVersion: '2.0'
+    settings: {}
   }
+}
 
-  @description('Enable Azure Monitor Agent for observability though VM Insights.')
-  resource amaExtension 'extensions' = {
-    name: 'AzureMonitorWindowsAgent'
-    location: location
-    properties: {
-      autoUpgradeMinorVersion: true
-      enableAutomaticUpgrade: true
-      publisher: 'Microsoft.Azure.Monitor'
-      type: 'AzureMonitorWindowsAgent'
-      typeHandlerVersion: '1.21'
-    }
+@description('Enable Azure Monitor Agent for observability though VM Insights.')
+resource amaExtension 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
+  name: 'AzureMonitorWindowsAgent'
+  parent: jumpBoxVirtualMachine
+  location: location
+  properties: {
+    autoUpgradeMinorVersion: true
+    enableAutomaticUpgrade: true
+    publisher: 'Microsoft.Azure.Monitor'
+    type: 'AzureMonitorWindowsAgent'
+    typeHandlerVersion: '1.21'
   }
+}
 
-  @description('Dependency Agent for service map support in Azure Monitor Agent.')
-  resource amaDependencyAgent 'extensions' = {
-    name: 'DependencyAgentWindows'
-    location: location
-    properties: {
-      autoUpgradeMinorVersion: true
-      enableAutomaticUpgrade: true
-      publisher: 'Microsoft.Azure.Monitoring.DependencyAgent'
-      type: 'DependencyAgentWindows'
-      typeHandlerVersion: '9.10'
-      settings: {
-        enableAMA: 'true'
-      }
+@description('Dependency Agent for service map support in Azure Monitor Agent.')
+resource amaDependencyAgent 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
+  name: 'DependencyAgentWindows'
+  parent: jumpBoxVirtualMachine
+  location: location
+  properties: {
+    autoUpgradeMinorVersion: true
+    publisher: 'Microsoft.Azure.Monitoring.DependencyAgent'
+    type: 'DependencyAgentWindows'
+    typeHandlerVersion: '9.10'
+    settings: {
+      enableAMA: 'true'
     }
   }
 }
@@ -347,6 +350,8 @@ resource jumpBoxDcrAssociation 'Microsoft.Insights/dataCollectionRuleAssociation
     description: 'VM Insights DCR association with the jump box.'
   }
   dependsOn: [
-    jumpBoxVirtualMachine::amaDependencyAgent
+    amaDependencyAgent
   ]
 }
+
+// Ensure all opened braces have corresponding closing braces

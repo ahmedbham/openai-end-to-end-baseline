@@ -31,11 +31,11 @@ var acrDnsZoneName = 'privatelink${environment().suffixes.acrLoginServer}'
 resource vnet 'Microsoft.Network/virtualNetworks@2022-11-01' existing =  {
   name: vnetName
 
-  resource privateEndpointsSubnet 'subnets' existing = {
+  resource privateEndpointsSubnet 'subnets@2022-11-01' existing = {
     name: privateEndpointsSubnetName
   }
 
-  resource buildAgentSubnet 'subnets' existing = {
+  resource buildAgentSubnet 'subnets@2022-11-01' existing = {
     name: buildAgentSubnetName
   }
 }
@@ -45,7 +45,7 @@ resource logWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' exis
 }
 
 @description('The container registry used by Azure AI Foundry to store prompt flow images.')
-resource acrResource 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
+resource acrResource 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' = {
   name: acrName
   location: location
   sku: {
@@ -55,32 +55,6 @@ resource acrResource 'Microsoft.ContainerRegistry/registries@2023-11-01-preview'
     adminUserEnabled: false
     dataEndpointEnabled: false
     networkRuleBypassOptions: 'AzureServices' // This allows support for ACR tasks to push the build image and bypass network restrictions - https://learn.microsoft.com/en-us/azure/container-registry/allow-access-trusted-services#trusted-services-workflow
-    networkRuleSet: {
-      defaultAction: 'Deny'
-      ipRules: []
-    }
-    policies: {
-      exportPolicy: {
-        status: 'disabled'
-      }
-      azureADAuthenticationAsArmPolicy: {
-        status: 'disabled'
-      }
-    }
-    publicNetworkAccess: 'Disabled'
-    zoneRedundancy: 'Enabled'
-  }
-
-  @description('Compute in the virtual network that can be used to build container images. This could also be done with tasks or images could be built on build agents.')
-  resource imageBuildPool 'agentPools@2019-06-01-preview' = {
-    name: 'imgbuild'
-    location: location
-    properties: {
-      os: 'Linux'
-      count: 1
-      virtualNetworkSubnetResourceId: vnet::buildAgentSubnet.id
-      tier: 'S1'
-    }
   }
 }
 

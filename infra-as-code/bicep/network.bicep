@@ -19,27 +19,13 @@ var jumpboxSubnetPrefix = '10.0.2.128/28'
 var trainingSubnetPrefix = '10.0.3.0/24'
 var scoringSubnetPrefix = '10.0.4.0/24'
 
-var enableDdosProtection = true
-
-// ---- Networking resources ----
-
-// DDoS Protection Plan
-// Cost otpimization: DDoS protection plans are relatively expensive. If deploying this as part of
-// a POC and your environment can be down during a targeted DDoS attack, consider not deplying 
-// this resource by setting `enableDdosProtection` to false.
-resource ddosProtectionPlan 'Microsoft.Network/ddosProtectionPlans@2024-01-01' = if (enableDdosProtection) {
-  name: 'ddos-${baseName}'
-  location: location
-  properties: {}
-}
 
 // Virtual network and subnets
 resource vnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
   name: 'vnet-${baseName}'
   location: location
   properties: {
-    enableDdosProtection: enableDdosProtection
-    ddosProtectionPlan: enableDdosProtection ? { id: ddosProtectionPlan.id } : null
+
     encryption: {
       enabled: false
       enforcement: 'AllowUnencrypted'

@@ -135,13 +135,13 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   location: location
   kind: 'linux'
   sku: {
-    name: 'P1v3'
-    tier: 'PremiumV3'
-    capacity: 3
+    name: 'P0V3'
+    tier: 'Premium0V3'
+    capacity: 1
   }
   properties: {
-    zoneRedundant: true
-    reserved: true
+    zoneRedundant: false
+    reserved: false
   }
 }
 
@@ -171,7 +171,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
       http20Enabled: true
       publicNetworkAccess: 'Disabled'
       alwaysOn: true
-      linuxFxVersion: 'DOTNETCORE|7.0'
+      linuxFxVersion: 'DOTNETCORE|8.0'
       netFrameworkVersion: null
       windowsFxVersion: null
     }

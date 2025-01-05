@@ -313,7 +313,6 @@ resource blobStorageDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   location: 'global'
   properties: {}
 
-  @description('Link private DNS zone to our workload virtual network')
   resource vnetLink 'virtualNetworkLinks' = {
     name: '${blobStorageDnsZone.name}-to-${vnet.name}'
     location: 'global'
@@ -332,7 +331,7 @@ resource fileStorageDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   location: 'global'
   properties: {}
 
-  @description('Link private DNS zone to our workload virtual network')
+
   resource vnetLink 'virtualNetworkLinks' = {
     name: '${fileStorageDnsZone.name}-to-${vnet.name}'
     location: 'global'

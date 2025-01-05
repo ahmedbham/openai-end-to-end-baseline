@@ -132,7 +132,7 @@ resource cognitiveServicesOpenAiUserForUserRoleAssignment 'Microsoft.Authorizati
 // ---- Azure AI Foundry resources ----
 
 @description('A hub provides the hosting environment for this AI workload. It provides security, governance controls, and shared configurations.')
-resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-07-01-preview' = {
+resource aiHub 'Microsoft.MachineLearningServices/workspaces@2024-10-01-preview' = {
   name: 'aihub-${baseName}'
   location: location
   kind: 'Hub'
